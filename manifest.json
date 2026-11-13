@@ -29,5 +29,8 @@
   ],
   "ai": {
     "endpoint": ""
+  },
+  "auth": {
+    "hub": true
   }
 }

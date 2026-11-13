@@ -21,6 +21,10 @@
 
 **部署要求**：登录态靠 `domain=.r6t5.dpdns.org` 的 cookie 共享，站点必须部署在 `*.r6t5.dpdns.org` 子域（GitHub Pages 需绑自定义域名并配 CNAME）。挂在 `*.github.io` 上时登录后回不来，也无法共享 cookie。
 
+### 开关
+
+`manifest.json` 里的 `"auth": { "hub": true }` 控制顶栏账号按钮是否显示，默认开启；设为 `false` 则整个账号入口隐藏。
+
 ## 站内右键菜单
 
 在页面上右键会打开站内菜单（输入框内仍是浏览器原生菜单）：
