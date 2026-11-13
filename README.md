@@ -2,6 +2,17 @@
 
 基于 GitHub Pages 的静态文档站模板：左侧可折叠目录，URL 通过 `?path=` 指定文档，右侧提供「在 GitHub 上编辑」与「复制全文」按钮，页脚带模板署名。
 
+## 页脚署名与「了解 Pro」入口（不可删改）
+
+社区版页脚包含两样东西，逐字符校验、删改会被自动还原并给出提示：
+
+- 署名：`本站由r6t5-docs提供支持，使用专业版、订制版可去除本标志`（链接必须指向本仓库）
+- 入口：右侧「了解 Pro →」按钮（指向 `https://github.com/TanchiPanda/r6t5-docs-docker#readme`）
+
+运行时靠 MutationObserver + 定时复核守住；构建期可用 `python3 scripts/check_attribution.py` 静态校验。
+取得专业版/订制版授权后，把 `FOOTER.showProNote` 改成 `false` 即可隐藏提示与入口（署名基础部分仍保留）。
+
+
 ## 功能
 
 - **可折叠文档目录**：由 `manifest.json` 驱动，支持多层分组嵌套。

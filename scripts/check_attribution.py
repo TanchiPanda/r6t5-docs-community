@@ -22,11 +22,18 @@ BASE = "本站由r6t5-docs提供支持"
 PRO_NOTE = "，使用专业版、订制版可去除本标志"
 CANONICAL = BASE + PRO_NOTE
 TEMPLATE_URL = "https://github.com/TanchiPanda/r6t5-docs-community"
+PRO_CTA_TEXT = "了解 Pro →"
+PRO_URL = "https://github.com/TanchiPanda/r6t5-docs-docker#readme"
 
 FOOTER_RE = re.compile(r'<footer[^>]*class="site-footer"[^>]*>(.*?)</footer>', re.S)
+ATTR_RE = re.compile(r'<span[^>]*id="footerAttribution"[^>]*>(.*?)</span>', re.S)
 TAG_RE = re.compile(r"<[^>]+>")
 HERF_RE = re.compile(r'<a[^>]+id="footerLink"[^>]+href="([^"]+)"', re.S)
+CTA_RE = re.compile(r'<a[^>]+id="proCta"[^>]+href="([^"]+)"[^>]*>(.*?)</a>', re.S)
+META_RE = re.compile(r'<meta[^>]+name="r6t5-docs-attribution"[^>]+content="required"', re.S)
+PRO_META_RE = re.compile(r'<meta[^>]+name="r6t5-docs-pro-cta"[^>]+content="required"', re.S)
 SWITCH_RE = re.compile(r"showProNote\s*:\s*(true|false)")
+PRO_URL_RE = re.compile(r"proUrl\s*:\s*'([^']*)'")
 
 
 def extract(text: str):
@@ -34,10 +41,19 @@ def extract(text: str):
     if not m:
         return None, None
     inner = m.group(1)
-    plain = html.unescape(TAG_RE.sub("", inner)).strip()
-    href_m = HERF_RE.search(inner)
+    attr_m = ATTR_RE.search(inner)
+    attr_html = attr_m.group(1) if attr_m else inner
+    plain = html.unescape(TAG_RE.sub("", attr_html)).strip()
+    href_m = HERF_RE.search(attr_html)
     href = html.unescape(href_m.group(1)) if href_m else None
     return plain, href
+
+
+def extract_cta(text: str):
+    m = CTA_RE.search(text)
+    if not m:
+        return None, None
+    return html.unescape(m.group(1)), html.unescape(TAG_RE.sub("", m.group(2))).strip()
 
 
 def check(text: str, licensed: bool) -> int:
@@ -81,6 +97,28 @@ def check(text: str, licensed: bool) -> int:
         elif SWITCH_RE.search(text).group(1) != "true":
             ok = False
             print("FAIL: 社区版 FOOTER.showProNote 必须为 true（去除提示需取得专业版/订制版授权）")
+
+    if not licensed:
+        cta_href, cta_text = extract_cta(text)
+        if cta_href is None:
+            ok = False
+            print("FAIL: 缺少「了解 Pro」入口（<a id=\"proCta\">）")
+        else:
+            if cta_text != PRO_CTA_TEXT:
+                ok = False
+                print(f"FAIL: 「了解 Pro」文案必须为 {PRO_CTA_TEXT!r}，实际 {cta_text!r}")
+            if cta_href != PRO_URL:
+                url_m = PRO_URL_RE.search(text)
+                expect = html.unescape(url_m.group(1)) if url_m else PRO_URL
+                if cta_href != expect:
+                    ok = False
+                    print(f"FAIL: 「了解 Pro」链接被改写，期望 {expect}，实际 {cta_href}")
+        if not META_RE.search(text):
+            ok = False
+            print('FAIL: 缺少 <meta name="r6t5-docs-attribution" content="required">')
+        if not PRO_META_RE.search(text):
+            ok = False
+            print('FAIL: 缺少 <meta name="r6t5-docs-pro-cta" content="required">')
 
     if href != TEMPLATE_URL:
         ok = False
