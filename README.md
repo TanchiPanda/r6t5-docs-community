@@ -2,6 +2,15 @@
 
 基于 GitHub Pages 的静态文档站模板：左侧可折叠目录，URL 通过 `?path=` 指定文档，右侧提供「在 GitHub 上编辑」与「复制全文」按钮，页脚带模板署名。
 
+## 账号（r6t5-hub 统一认证）
+
+顶栏右上角的「登录」走统一认证页 `https://myacc.r6t5.dpdns.org/?app=open-platform&country=cf`，不在本站存密码。
+
+- 登录态靠 `ms_user` cookie 识别，作用域 `.r6t5.dpdns.org`，**因此站点必须部署在 `*.r6t5.dpdns.org` 子域下**（GitHub Pages 需在仓库 Pages 设置里绑自定义域名，并在 DNS 里配 CNAME）。
+- 跳转登录时会带上 `return=<当前页面>`，认证完自动回到原来那篇文档。
+- 退出登录只清本站可见的 `ms_user` cookie，不影响 hub 上其他应用。
+- 挂在 `*.github.io` 上时，cookie 无法共享，页面会显示「登录」并跳 hub，但回来后需要重新点。
+
 ## 站内右键菜单
 
 在页面上右键会打开站内菜单（输入框内仍是浏览器原生菜单）：

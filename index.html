@@ -296,6 +296,22 @@
     .prop:last-child{border-bottom:none}
     .prop span{color:#8d99bb}
     .prop b{font-weight:600;word-break:break-all;text-align:right}
+
+    /* ---------- 账号（r6t5-hub 统一认证） ---------- */
+    .auth-wrap{position:relative;flex:0 0 auto}
+    .auth-btn{display:flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:9px;
+      background:var(--panel);color:var(--text);font-size:12.5px;cursor:pointer}
+    .auth-btn:hover{border-color:var(--accent)}
+    .auth-avatar{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--accent);
+      color:#fff;font-size:11px;font-weight:700;text-transform:uppercase}
+    .auth-menu{position:absolute;right:0;top:38px;min-width:210px;padding:8px;border-radius:11px;background:var(--panel);
+      border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.35);z-index:50}
+    .auth-mail{font-size:12px;color:var(--muted);padding:4px 8px 9px;border-bottom:1px solid var(--line);margin-bottom:6px;
+      word-break:break-all}
+    .auth-menu button{width:100%;text-align:left;padding:8px;border:none;border-radius:8px;background:none;color:var(--text);
+      font-size:12.5px;cursor:pointer}
+    .auth-menu button:hover{background:rgba(110,168,254,.12)}
+    @media (max-width:720px){.auth-label,.auth-btn span:not(.auth-avatar){display:none}}
   </style>
 </head>
 <body>
@@ -328,6 +344,16 @@
             <button type="button" data-type="markdown">复制 Markdown</button>
             <button type="button" data-type="xml">复制 XML<span class="menu-desc">（渲染后标签）</span></button>
             <button type="button" data-type="text">复制纯文本</button>
+          </div>
+        </div>
+        <div class="auth-wrap" id="authWrap">
+          <button class="auth-btn" id="authBtn" hidden>
+            <span class="auth-avatar" id="authAvatar">·</span>
+            <span id="authLabel">登录</span>
+          </button>
+          <div class="auth-menu" id="authMenu" hidden>
+            <div class="auth-mail" id="authMail"></div>
+            <button type="button" id="authLogout">退出登录</button>
           </div>
         </div>
         <a class="edit-btn" id="editBtn" target="_blank" rel="noopener">
@@ -909,6 +935,70 @@
       document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
       document.addEventListener('mousedown', e => { if (menu && !e.target.closest('.ctx-menu')) close(); });
       window.addEventListener('scroll', close, true);
+    })();
+
+    // ---------- 账号：r6t5-hub 统一认证（跨子域 cookie SSO） ----------
+    (function initAuth() {
+      const AUTH_BASE = 'https://myacc.r6t5.dpdns.org/';
+      const AUTH_APP = 'open-platform';
+      const AUTH_COUNTRY = 'cf';
+      const SSO_SUFFIX = '.r6t5.dpdns.org';
+
+      const btn = document.getElementById('authBtn');
+      const label = document.getElementById('authLabel');
+      const avatar = document.getElementById('authAvatar');
+      const menuEl = document.getElementById('authMenu');
+      const mailEl = document.getElementById('authMail');
+      if (!btn) return;
+
+      function readCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : null;
+      }
+      function hubUser() {
+        const raw = readCookie('ms_user');
+        if (!raw) return null;
+        try { const u = JSON.parse(raw); return (u && (u.email || u.login)) ? u : null; } catch (e) { return null; }
+      }
+      function canReturn() { return location.hostname.endsWith(SSO_SUFFIX); }
+
+      function loginURL() {
+        const u = new URL(AUTH_BASE);
+        u.searchParams.set('app', AUTH_APP);
+        u.searchParams.set('country', AUTH_COUNTRY);
+        if (canReturn()) u.searchParams.set('return', location.href);
+        return u.toString();
+      }
+
+      function clearSSO() {
+        document.cookie = 'ms_user=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + SSO_SUFFIX + ';Secure';
+      }
+
+      function render() {
+        const u = hubUser();
+        btn.hidden = false;
+        if (u) {
+          const name = (u.name || u.email || '').trim();
+          label.textContent = name.split('@')[0].slice(0, 12);
+          avatar.textContent = name.slice(0, 1) || 'U';
+          mailEl.textContent = u.email || '';
+        } else {
+          label.textContent = '登录';
+          avatar.textContent = '·';
+        }
+      }
+
+      btn.onclick = () => {
+        if (hubUser()) { menuEl.hidden = !menuEl.hidden; return; }
+        location.href = loginURL();
+      };
+      document.getElementById('authLogout').onclick = () => { clearSSO(); menuEl.hidden = true; render(); };
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#authWrap')) menuEl.hidden = true;
+      });
+      render();
+      // 从统一认证返回后，cookie 可能刚写入，稍后再刷一次
+      setTimeout(render, 800);
     })();
 </script>
 </body>
