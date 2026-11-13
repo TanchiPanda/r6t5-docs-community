@@ -7,8 +7,8 @@
 ```js
 const REPO = '用户名/仓库名';
 const DEFAULT_PATH = 'docs/index.md';
+const ATTRIBUTION = { /* 署名规范字符串，请勿修改 */ };
 const FOOTER = {
-  templateRepo: '用户名/模板仓库名',
   showProNote: true
 };
 ```
@@ -17,8 +17,40 @@ const FOOTER = {
 | ---- | ---- |
 | `REPO` | GitHub 仓库地址，格式为 `用户名/仓库名`，用于拼接「在 GitHub 上编辑」链接 |
 | `DEFAULT_PATH` | 未携带 `?path=` 参数时默认加载的文档路径 |
-| `FOOTER.templateRepo` | 页脚署名链接指向的模板仓库 |
-| `FOOTER.showProNote` | 是否显示「使用专业版、订制版可去除本标志」提示；商业授权后可设为 `false` |
+| `ATTRIBUTION` | 署名规范字符串与模板仓库链接，社区版不得修改 |
+| `FOOTER.showProNote` | 是否显示「使用专业版、订制版可去除本标志」提示；社区版必须为 `true`，取得商业授权后方可设为 `false` |
+
+## 署名与校验
+
+社区版署名规范字符串（逐字符一致，含标点，无多余空格）：
+
+```text
+本站由r6t5-docs提供支持，使用专业版、订制版可去除本标志
+```
+
+署名链接必须为 `https://github.com/TanchiPanda/r6t5-docs-community`。仓库内置三重校验：
+
+| 机制 | 作用 |
+| ---- | ---- |
+| `scripts/check_attribution.py` | 本地/CI 逐字符比对署名与链接，差异会定位到第几个字符 |
+| `.github/workflows/attribution-guard.yml` | 每次 push / PR 自动校验；每周巡检线上站点 |
+| `index.html` 运行时守卫 | 页面加载时比对 DOM，被删改则显示提示并自动恢复标准署名 |
+
+本地校验：
+
+```bash
+python3 scripts/check_attribution.py                       # 社区版
+python3 scripts/check_attribution.py --url <线上地址>       # 校验已部署站点
+python3 scripts/check_attribution.py --licensed            # 已授权版本
+```
+
+发现他人副本不合规时，可扫描公开仓库：
+
+```bash
+GITHUB_TOKEN=xxx python3 scripts/scan_public_copies.py
+```
+
+详细条款见仓库根目录 `LICENSE`。
 
 ## 目录清单格式
 

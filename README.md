@@ -18,12 +18,13 @@
 2. 打开 `index.html`，修改顶部配置：
 
 ```js
-const REPO = '用户名/仓库名';            // 你的仓库，用于拼接编辑链接
+const REPO = '用户名/仓库名';   // 你的仓库，用于拼接编辑链接
 const FOOTER = {
-  templateRepo: 'TanchiPanda/r6t5-docs-community',  // 模板仓库链接
-  showProNote: true                      // 商业授权后可改为 false 去除署名提示
+  showProNote: true             // 社区版必须为 true；商业授权后可改为 false
 };
 ```
+
+署名规范字符串与链接由 `ATTRIBUTION` 常量统一提供，请勿修改。
 
 3. 在 `docs/` 下编写 Markdown 文档，并在 `manifest.json` 登记目录。
 4. 推送 `main` 分支，在 **Settings → Pages** 选择 `main` / `/(root)` 开启站点。
@@ -52,5 +53,24 @@ python3 -m http.server 8000
 
 ## 署名说明
 
-- 免费使用时页脚保留模板署名与「专业版、订制版可去除本标志」提示。
-- 升级专业版或订制版后，将 `FOOTER.showProNote` 设为 `false` 即可去除该提示；如需完全移除署名，请参考授权条款。
+- 社区版页脚必须完整展示：**本站由r6t5-docs提供支持，使用专业版、订制版可去除本标志**，逐字符一致，`r6t5-docs` 必须链接到本模板仓库。
+- 取得专业版/订制版授权后，将 `FOOTER.showProNote` 设为 `false` 可隐藏「，使用专业版、订制版可去除本标志」，其余署名仍须保留。
+- 完整条款见 [`LICENSE`](LICENSE)。
+
+## 署名校验
+
+仓库内置校验，任何提交/PR 署名不合规都会失败：
+
+```bash
+python3 scripts/check_attribution.py              # 校验本地 index.html
+python3 scripts/check_attribution.py --url <站点>  # 校验线上站点
+```
+
+- `.github/workflows/attribution-guard.yml`：push / PR 自动校验，每周一巡检线上站点。
+- `index.html` 运行时守卫：署名被删改时自动恢复并在页面提示。
+
+扫描公开副本是否合规：
+
+```bash
+GITHUB_TOKEN=xxx python3 scripts/scan_public_copies.py
+```

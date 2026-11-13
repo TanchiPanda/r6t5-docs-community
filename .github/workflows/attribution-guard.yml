@@ -1,0 +1,37 @@
+name: attribution-guard
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 1 * * 1"   # 每周一 09:00（UTC+8）巡检线上站点
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # 校验仓库源码中的署名文案与链接，任何提交/PR 不合规即失败
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Check attribution in index.html
+        run: python3 scripts/check_attribution.py --file index.html
+
+  # 巡检已部署站点，防止改了源码却没生效或线上被替换
+  live:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Check live site attribution
+        run: |
+          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          python3 scripts/check_attribution.py --url "$URL"
