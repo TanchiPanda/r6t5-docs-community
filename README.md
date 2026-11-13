@@ -2,6 +2,26 @@
 
 基于 GitHub Pages 的静态文档站模板：左侧可折叠目录，URL 通过 `?path=` 指定文档，右侧提供「在 GitHub 上编辑」与「复制全文」按钮，页脚带模板署名。
 
+## 站内右键菜单
+
+在页面上右键会打开站内菜单（输入框内仍是浏览器原生菜单）：
+
+| 项 | 作用 |
+|---|---|
+| AI 对话 | 带当前文档片段向 Workers AI 提问，需在 `manifest.json` 配 `ai.endpoint` |
+| 复制 | 复制选中内容；没选中就复制全文 Markdown |
+| 纠错 | 跳到本仓库 Bug Issue 新建页，标题自动填「内容纠错：路径」 |
+| 属性 | 路径、字数、文件大小、GitHub 上次提交 |
+| 显示更多选项 | 关闭站内菜单，下一次右键恢复浏览器原生菜单 |
+
+AI 后端可直接用 `rtdocs-home` 仓库里的 `worker/`（Cloudflare Workers AI），部署后把地址填进 `manifest.json`：
+
+```json
+"ai": { "endpoint": "https://rtdocs-ai.xxx.workers.dev" }
+```
+
+留空时「AI 对话」置灰，其余功能不受影响。
+
 ## 顶栏搜索
 
 顶栏右侧、复制按钮左侧有搜索框：`⌘K`（Windows 为 `Ctrl+K`）聚焦，支持**文件名标题**与**全文**匹配，回车/点击跳转，`Esc` 关闭。
