@@ -2,6 +2,15 @@
 
 基于 GitHub Pages 的静态文档站模板：左侧可折叠目录，URL 通过 `?path=` 指定文档，右侧提供「在 GitHub 上编辑」与「复制全文」按钮，页脚带模板署名。
 
+## 设置页
+
+顶栏齿轮按钮打开，包含：
+
+- **主题**：浅色（白底）/ 深色（#0d1117 黑底），强调色支持蓝 / 红 / 黄 / 绿 四档预设和调色盘自定义。
+- **账号**：开放平台账号显示邮箱 + 「账号管理 →」；站点自有账号显示「请等待适配开放平台的自定义账号系统」；未登录时给登录入口。
+
+偏好存在 `localStorage["r6t5.prefs"]`（`{mode:"light"|"dark", accent:"#RRGGBB"}`），刷新后保持。深色模式通过 CSS 变量（`--bg/--sidebar-bg/--border/--text/--text-muted/--accent/--code-bg`）切换，并给硬编码白底的控件加了 `html.r6t5-dark` 覆盖层。
+
 ## 账号（R6T5 Hub 统一认证 · open-platform）
 
 登录统一走 `https://myacc.r6t5.dpdns.org/?app=open-platform&country=cf&return=<当前页>`，本站不出现登录表单、不存密码、不接第三方 OAuth。
