@@ -1,0 +1,73 @@
+name: 功能请求
+description: 希望 r6t5-docs 增加或改进某个能力
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先说明要解决什么问题，再讲方案；如果和现有能力重合，请指出差别。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 现在哪里不顺手？谁在什么场景下会遇到？
+      placeholder: 例如「文档多了以后，读者找不到某一篇，只能翻目录」
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的方案
+      description: 描述你希望它怎么工作，越具体越好（交互、入口位置、边界情况）
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案
+      description: 有没有别的实现方式？为什么不用？
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影响范围
+      multiple: true
+      options:
+        - 文档渲染 / 目录树
+        - 顶栏搜索
+        - 署名与「了解 Pro」入口
+        - 文档积分 / 账号 / VIP
+        - 管理后台
+        - Docker 部署 / 启动门禁
+        - 分发与授权
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: edition
+    attributes:
+      label: 主要面向哪个版本
+      options:
+        - 所有版本
+        - 社区版
+        - 专业版 / 订制版
+        - Docker 版
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: 参与方式
+      options:
+        - label: 我愿意提 PR 实现这个功能
+          required: false
+        - label: 我可以帮忙测试
+          required: false

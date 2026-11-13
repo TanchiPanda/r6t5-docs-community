@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用与部署说明
+    url: https://github.com/TanchiPanda/r6t5-docs-community#readme
+    about: 先看 README，包含 manifest 配置、搜索、署名要求与积分接入
+  - name: Docker 专业版
+    url: https://github.com/TanchiPanda/r6t5-docs-docker#readme
+    about: 管理后台、授权、积分与 VIP 的相关说明
