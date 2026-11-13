@@ -9,6 +9,7 @@
   <meta name="r6t5-docs-pro-cta" content="required">
   <title>r6t5 文档</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="sbauth.js?v=20261113"></script>
   <style>
     :root {
       --bg: #ffffff;
@@ -937,50 +938,21 @@
       window.addEventListener('scroll', close, true);
     })();
 
-    // ---------- 账号：r6t5-hub 统一认证（跨子域 cookie SSO） ----------
+    // ---------- 账号：R6T5 Hub 统一认证（open-platform） ----------
     (function initAuth() {
-      const AUTH_BASE = 'https://myacc.r6t5.dpdns.org/';
-      const AUTH_APP = 'open-platform';
-      const AUTH_COUNTRY = 'cf';
-      const SSO_SUFFIX = '.r6t5.dpdns.org';
-
       const btn = document.getElementById('authBtn');
       const label = document.getElementById('authLabel');
       const avatar = document.getElementById('authAvatar');
       const menuEl = document.getElementById('authMenu');
       const mailEl = document.getElementById('authMail');
-      if (!btn) return;
+      if (!btn || typeof sbResolveAuth !== 'function') return;
 
-      function readCookie(name) {
-        const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-        return m ? decodeURIComponent(m[1]) : null;
-      }
-      function hubUser() {
-        const raw = readCookie('ms_user');
-        if (!raw) return null;
-        try { const u = JSON.parse(raw); return (u && (u.email || u.login)) ? u : null; } catch (e) { return null; }
-      }
-      function canReturn() { return location.hostname.endsWith(SSO_SUFFIX); }
-
-      function loginURL() {
-        const u = new URL(AUTH_BASE);
-        u.searchParams.set('app', AUTH_APP);
-        u.searchParams.set('country', AUTH_COUNTRY);
-        if (canReturn()) u.searchParams.set('return', location.href);
-        return u.toString();
-      }
-
-      function clearSSO() {
-        document.cookie = 'ms_user=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + SSO_SUFFIX + ';Secure';
-      }
-
-      function render() {
-        const u = hubUser();
+      function render(u) {
         btn.hidden = false;
         if (u) {
           const name = (u.name || u.email || '').trim();
-          label.textContent = name.split('@')[0].slice(0, 12);
-          avatar.textContent = name.slice(0, 1) || 'U';
+          label.textContent = (u.email || name).split('@')[0].slice(0, 14);
+          avatar.textContent = (name.slice(0, 1) || 'U');
           mailEl.textContent = u.email || '';
         } else {
           label.textContent = '登录';
@@ -988,17 +960,32 @@
         }
       }
 
-      btn.onclick = () => {
-        if (hubUser()) { menuEl.hidden = !menuEl.hidden; return; }
-        location.href = loginURL();
-      };
-      document.getElementById('authLogout').onclick = () => { clearSSO(); menuEl.hidden = true; render(); };
-      document.addEventListener('click', e => {
-        if (!e.target.closest('#authWrap')) menuEl.hidden = true;
+      btn.addEventListener('click', async () => {
+        const u = await sbResolveAuth(true);
+        if (u) { menuEl.hidden = !menuEl.hidden; return; }
+        msLogin({ returnTo: location.href });
       });
-      render();
-      // 从统一认证返回后，cookie 可能刚写入，稍后再刷一次
-      setTimeout(render, 800);
+
+      document.getElementById('authLogout').addEventListener('click', async () => {
+        menuEl.hidden = true;
+        try { await msLogout(location.href); } catch (e) { location.reload(); }
+      });
+
+      document.addEventListener('click', e => { if (!e.target.closest('#authWrap')) menuEl.hidden = true; });
+      document.addEventListener('sb:auth', e => render(e.detail && e.detail.user));
+
+      // 只有 URL 里带回凭证时才做完整的会话解析（会写 localStorage、清失效 cookie）；
+      // Hub 普通登录回跳是纯 cookie（ms_user），此时必须保留 cookie，否则一回来就掉登录
+      (async () => {
+        const hasUrlCred = location.hash.indexOf('access_token=') >= 0
+          || new URLSearchParams(location.search).has('code');
+        try {
+          if (hasUrlCred) { await sbResolveAuth(true); render(sbGetUser()); }
+          else { render(sbGetUser()); }
+        } catch (e) {
+          render(typeof sbGetUser === 'function' ? sbGetUser() : null);
+        }
+      })();
     })();
 </script>
 </body>

@@ -2,14 +2,24 @@
 
 基于 GitHub Pages 的静态文档站模板：左侧可折叠目录，URL 通过 `?path=` 指定文档，右侧提供「在 GitHub 上编辑」与「复制全文」按钮，页脚带模板署名。
 
-## 账号（r6t5-hub 统一认证）
+## 账号（R6T5 Hub 统一认证 · open-platform）
 
-顶栏右上角的「登录」走统一认证页 `https://myacc.r6t5.dpdns.org/?app=open-platform&country=cf`，不在本站存密码。
+登录统一走 `https://myacc.r6t5.dpdns.org/?app=open-platform&country=cf&return=<当前页>`，本站不出现登录表单、不存密码、不接第三方 OAuth。
 
-- 登录态靠 `ms_user` cookie 识别，作用域 `.r6t5.dpdns.org`，**因此站点必须部署在 `*.r6t5.dpdns.org` 子域下**（GitHub Pages 需在仓库 Pages 设置里绑自定义域名，并在 DNS 里配 CNAME）。
-- 跳转登录时会带上 `return=<当前页面>`，认证完自动回到原来那篇文档。
-- 退出登录只清本站可见的 `ms_user` cookie，不影响 hub 上其他应用。
-- 挂在 `*.github.io` 上时，cookie 无法共享，页面会显示「登录」并跳 hub，但回来后需要重新点。
+实现依赖根目录的 `sbauth.js`（源自 `Word_Funny_Game/dict/sbauth.js` 最新版），仅做了两处应用侧调整：
+
+1. `INTL_APP_ID = "open-platform"`（`CN_APP_ID` 同名占位），`IS_CN_NODE = false`，目前只接国际节点 cf。
+2. `sbResolveAuth` 在「本页没有 Supabase 会话」时，若存在 `ms_user` cookie 则保留并作为登录态，而不是清空——Hub 普通登录回跳只写 cookie、不带 token，原逻辑会导致一回来就掉登录。
+
+使用方式：
+
+- 登录：`msLogin({ returnTo: location.href })`
+- 启动解析：`await sbResolveAuth()`（自动消费 `#access_token` 与 `?code`）
+- 取用户：`sbGetUser()`（cookie / localStorage 乐观读取）
+- 退出：`msLogout(location.href)`（signOut + 清 `ms_user`、`ms_user_node`）
+- 需要鉴权的接口：`await sbGetAccessToken()`，请求头 `Authorization: Bearer <token>`
+
+**部署要求**：登录态靠 `domain=.r6t5.dpdns.org` 的 cookie 共享，站点必须部署在 `*.r6t5.dpdns.org` 子域（GitHub Pages 需绑自定义域名并配 CNAME）。挂在 `*.github.io` 上时登录后回不来，也无法共享 cookie。
 
 ## 站内右键菜单
 
