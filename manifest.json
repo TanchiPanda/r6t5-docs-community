@@ -28,7 +28,7 @@
     }
   ],
   "ai": {
-    "endpoint": ""
+    "endpoint": "https://ai.r6t5.dpdns.org"
   },
   "auth": {
     "hub": true
